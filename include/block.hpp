@@ -1,25 +1,29 @@
 #ifndef BLOCK_HPP
 #define BLOCK_HPP
 
+#include "block_data.hpp"
+#include "hash.hpp"
+#include "timestamp.hpp"
 #include <string>
-#include <ctime>
 
+namespace Xallve {
 class Block {
 public:
-    Block(std::string data, std::string previousHash = "");
+    Block(const BlockData& data, const Hash& previousHash = Hash());
 
-    std::string getHash() const;
-    std::string getPreviousHash() const;
-    std::string getData() const;
-    std::time_t getTimestamp() const;
+    Hash getHash() const;
+    Hash getPreviousHash() const;
+    BlockData getData() const;
+    Timestamp getTimestamp() const;
+
 
 private:
-    std::string previousHash;
-    std::string data;
-    std::time_t timestamp;
-    std::string hash;
+    Hash previousHash;
+    BlockData data;
+    Timestamp timestamp;
+    Hash hash;
 
-    std::string calculateHash() const;
+    Hash calculateHash() const;
 };
-
+}
 #endif // BLOCK_HPP
