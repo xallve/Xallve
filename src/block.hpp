@@ -17,7 +17,7 @@ namespace Xallve {
     private:
         void calculateHash();
         Block* mprevBlock;
-        std::vector<uint8_t*> mData;
+        std::vector<uint8_t*> mData;                // Treat transactions as vector of byte arrays
         uint8_t* mHash;
         std::time_t mCreatedTS;
 

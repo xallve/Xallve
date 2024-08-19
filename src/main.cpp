@@ -1,33 +1,29 @@
-#include "block.hpp"
-#include <openssl/sha.h>
+#include "keypair.hpp"
 #include <iostream>
 
 int main() {
-    using namespace Xallve;
+    try {
+        // Got this from Keypair().toBase58
+        Xallve::Keypair keypair(std::string("46aD2N8MuSDc5nWNysFVYFkogEuaaUDuTRo216E5thYPM93YncGaxZ6GZUMcBiZtzHfn8SVkoSACa3Evq2D5mHTi"));
+        std::vector<uint8_t> pub = keypair.getPublicKey();
+        std::vector<uint8_t> priv = keypair.getPrivateKey();
+        std::cout << "Public: " << std::endl;
+        for (auto b : pub) {
+            std::cout << std::hex << (int)b;
+        }
+        std::cout << std::endl;
 
-    // Create genesis block
-    Block genesisBlock(nullptr);
-    std::cout << "Genesis Block Hash: ";
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
-        printf("%02x", genesisBlock.getHash()[i]);
-    std::cout << std::endl;
+        std::cout << "Private: " << std::endl;
+        for (auto b : priv) {
+            std::cout << std::hex << (int)b;
+        }
+        std::cout << std::endl;
 
-    // Add data to genesisBlock
-    uint8_t data1[] = {0x01, 0x02, 0x03, 0x04};
-    genesisBlock.addData(data1);
-    std::cout << "Genesis Block Hash after adding data: ";
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
-        printf("%02x", genesisBlock.getHash()[i]);
-    std::cout << std::endl;
 
-    // Create second block
-    Block secondBlock(&genesisBlock);
-    uint8_t data2[] = {0x05, 0x06, 0x07, 0x08};
-    secondBlock.addData(data2);
-    std::cout << "Second Block Hash: ";
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
-        printf("%02x", secondBlock.getHash()[i]);
-    std::cout << std::endl;
+    } catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }
