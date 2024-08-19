@@ -1,39 +1,69 @@
 #include "block.hpp"
+
+#include <string.h>
 #include <openssl/sha.h>
-#include <sstream>
 
 namespace Xallve {
-Block::Block(const BlockData& data, const Hash& previousHash)
-    : data(data), previousHash(previousHash), timestamp(Timestamp()) {
-    hash = calculateHash();
-}
 
-Hash Block::calculateHash() const {
-    std::string toHash = previousHash.getValue() + std::to_string(timestamp.getValue()) + data.getData();
-    unsigned char hashResult[SHA256_DIGEST_LENGTH];
-    SHA256((unsigned char*)toHash.c_str(), toHash.size(), hashResult);
-    
-    std::stringstream ss;
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-        ss << std::hex << (int)hashResult[i];
+    Block::Block(Block* prevBlock)
+        : mprevBlock(prevBlock), mData(), mCreatedTS(std::time(0)) {
+        
+        mHash = new uint8_t[SHA256_DIGEST_LENGTH];
+        // Fill blockhash
+        if (mprevBlock)
+            memcpy(mHash, mprevBlock->getHash(), SHA256_DIGEST_LENGTH);
+        else
+            memset(mHash, 0, SHA256_DIGEST_LENGTH);
+
+        calculateHash(); // Initial blockhash calculation
     }
-    return Hash(ss.str());
-}
 
-Hash Block::getHash() const {
-    return hash;
-}
+    Block::~Block() {
+        delete[] mHash;
+    }
 
-Hash Block::getPreviousHash() const {
-    return previousHash;
-}
+    void Block::calculateHash() {
+        // Bufer to collect data to hash
+        size_t total_size = SHA256_DIGEST_LENGTH + sizeof(mCreatedTS);
 
-BlockData Block::getData() const {
-    return data;
-}
+        for (const auto& data : mData) {
+            total_size += sizeof(data);
+        }
 
-Timestamp Block::getTimestamp() const {
-    return timestamp;
-}
+        std::vector<uint8_t> toHash(total_size);
+        uint8_t* ptr = toHash.data();
 
-}
+        memcpy(ptr, mHash, SHA256_DIGEST_LENGTH);
+        ptr += SHA256_DIGEST_LENGTH;
+
+        memcpy(ptr, &mCreatedTS, sizeof(mCreatedTS));
+        ptr += sizeof(mCreatedTS);
+
+        for (const auto& data : mData) {
+            memcpy(ptr, data, sizeof(data));
+            ptr += sizeof(data);
+        }
+        
+        // Write data to blockhash member
+        SHA256(toHash.data(), total_size, mHash);
+    }
+
+    void Block::addData(uint8_t* data) {
+        mData.push_back(data);
+        calculateHash();
+    }
+
+
+    uint8_t* Block::getHash() const {
+        return mHash;
+    }
+
+    std::vector<uint8_t*> Block::getData() const {
+        return mData;
+    }
+
+    std::time_t Block::getTimeStamp() const {
+        return mCreatedTS;
+    }
+
+} // namespace Xallve
