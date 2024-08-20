@@ -35,3 +35,9 @@ public:
     Base58EncodeException()
         : KeypairException("Failed to encode Keypair to base58") {}
 };
+
+class PublicKeyIsNotOnCurve : public KeypairException {
+public:
+    PublicKeyIsNotOnCurve()
+        : KeypairException("Derived Publickey is not on curve") {}
+};
