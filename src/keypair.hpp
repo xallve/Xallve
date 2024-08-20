@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include "keypairerrors.cpp"
+#include "pubkey.hpp"
 
 namespace Xallve {
     // TODO Add validation support
