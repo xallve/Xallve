@@ -12,10 +12,11 @@ namespace Xallve {
             throw SodiumInitializationException();
         }
 
-        mPublicKey.resize(crypto_sign_PUBLICKEYBYTES);
+        std::vector<uint8_t> publicKey(crypto_sign_PUBLICKEYBYTES);
         mPrivateKey.resize(crypto_sign_SECRETKEYBYTES);
 
-        crypto_sign_keypair(mPublicKey.data(), mPrivateKey.data());
+        crypto_sign_keypair(publicKey.data(), mPrivateKey.data());
+        mPubKey = PubKey(publicKey);
     }
 
     Keypair::Keypair(const std::vector<uint8_t>& byteArray) {
@@ -36,8 +37,7 @@ namespace Xallve {
         }
 
         mPrivateKey.assign(PrivateKey.begin(), PrivateKey.begin() + crypto_sign_SECRETKEYBYTES);
-        mPublicKey.assign(PrivateKey.begin() + crypto_sign_PUBLICKEYBYTES, PrivateKey.end());
-
+        mPubKey = PubKey(derivedPublicKey);
 
     }
 
@@ -59,16 +59,38 @@ namespace Xallve {
         }
 
         mPrivateKey.assign(byteArray.begin(), byteArray.begin() + crypto_sign_SECRETKEYBYTES);
-        mPublicKey.assign(byteArray.begin() + crypto_sign_PUBLICKEYBYTES, byteArray.end());
+        mPubKey = PubKey(derivedPublicKey);
     }
 
-    std::vector<uint8_t> Keypair::toByteArray() const {
-        std::vector<uint8_t> byteArray(mPrivateKey);
-        return byteArray;
+    Keypair::Keypair(const Keypair& other) 
+        : mPrivateKey(other.mPrivateKey), mPubKey(other.mPubKey) {}
+    
+    Keypair::Keypair(Keypair&& other) noexcept 
+        : mPrivateKey(std::move(other.mPrivateKey)), mPubKey(std::move(other.mPubKey)) {}
+
+    Keypair& Keypair::operator=(const Keypair& other) {
+        if (this != &other) {
+            mPrivateKey = other.mPrivateKey;
+            mPubKey = other.mPubKey;
+        }
+        return *this;
     }
 
-    std::string Keypair::toBase58String() const {
-        std::vector<uint8_t> byteArray = toByteArray();
+
+    Keypair& Keypair::operator=(Keypair&& other) noexcept {
+        if (this != &other) {
+            mPrivateKey = std::move(other.mPrivateKey);
+            mPubKey = std::move(other.mPubKey);
+        }
+        return *this;
+    }
+
+    std::vector<uint8_t> Keypair::to_bytes() const {
+        return mPrivateKey;
+    }
+
+    std::string Keypair::to_string() const {
+        std::vector<uint8_t> byteArray = to_bytes();
         char b58[128];
         size_t b58_len = sizeof(b58);
         if (!b58enc(b58, &b58_len, byteArray.data(), byteArray.size())) {
@@ -77,12 +99,8 @@ namespace Xallve {
         return std::string(b58);
     }
 
-    std::vector<uint8_t> Keypair::getPublicKey() const {
-        return mPublicKey;
-    }
-
-    std::vector<uint8_t> Keypair::getPrivateKey() const {
-        return mPrivateKey;
+    PubKey Keypair::PublicKey() const {
+        return mPubKey;
     }
     
 } // namespace Xallve

@@ -12,21 +12,25 @@ namespace Xallve {
     class Keypair {
     public:
         Keypair();                                              // Random keypair
+        Keypair(const Keypair& other);
+        Keypair(Keypair&& other) noexcept;
         Keypair(const std::vector<uint8_t>& byteArray);         // Keypair from bytearray
         Keypair(const std::string& base58String);               // Keypair from base58 string
 
         // get keys
-        std::vector<uint8_t> getPublicKey() const;
-        std::vector<uint8_t> getPrivateKey() const;
+        PubKey PublicKey() const;
 
         // --------
-        std::vector<uint8_t> toByteArray() const;
-        std::string toBase58String() const;
+        std::vector<uint8_t> to_bytes() const;                  
+        std::string to_string() const;                          // to Base58
+
+        Keypair& operator=(const Keypair& other);
+        Keypair& operator=(Keypair&& other) noexcept;
 
         bool isValidKeypair(const std::vector<uint8_t>& byteArray);
     
     private:
-        std::vector<uint8_t> mPublicKey;
+        PubKey mPubKey;
         std::vector<uint8_t> mPrivateKey;
     };
 }
